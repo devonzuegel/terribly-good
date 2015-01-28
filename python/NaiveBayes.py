@@ -4,28 +4,31 @@ import os
 import math
 
 class NaiveBayes:
+  ##
+  # Represents a set of training/testing data. self.train is a list of
+  # Examples, as is self.test. 
   class TrainSplit:
-    """Represents a set of training/testing data. self.train is a list of Examples, as is self.test. 
-    """
     def __init__(self):
       self.train = []
       self.test = []
 
+  ##
+  # Represents a document with a label. klass is 'pos' or 'neg' by
+  # convention.
   class Example:
-    """Represents a document with a label. klass is 'pos' or 'neg' by convention.
        words is a list of strings.
-    """
     def __init__(self):
       self.klass = ''
       self.words = []
 
 
+ # NaiveBayes initialization
   def __init__(self):
-    """NaiveBayes initialization"""
     self.FILTER_STOP_WORDS = False
     self.BOOLEAN_NB = False
     self.stopList = set(self.readFile('../data/english.stop'))
     self.numFolds = 10
+
 
   #############################################################################
   # TODO TODO TODO TODO TODO 
@@ -35,34 +38,36 @@ class NaiveBayes:
   # Naive Bayes (that relies on feature presence/absence) instead of the usual algorithm
   # that relies on feature counts
 
+  ## 
+  # TODO:
+  # 'words' is a list of words to classify. Return 'pos' or 'neg'
+  # classification.
   def classify(self, words):
-    """ TODO
-      'words' is a list of words to classify. Return 'pos' or 'neg' classification.
-    """
+    
     return 'pos'
   
 
+  ## 
+  # TODO:
+  # Train your model on an example document with label klass ('pos' or
+  # 'neg') and words, a list of strings.
+  #
+  # You should store whatever data structures you use for your
+  # classifier  in the NaiveBayes class.
+  #
+  # Returns nothing
   def addExample(self, klass, words):
-    """
-     * TODO
-     * Train your model on an example document with label klass ('pos' or 'neg') and
-     * words, a list of strings.
-     * You should store whatever data structures you use for your classifier 
-     * in the NaiveBayes class.
-     * Returns nothing
-    """
     pass
       
 
   # END TODO (Modify code beyond here with caution)
-  #############################################################################
-  
-  
+  #############################################################################  
+
+
+  ##
+  # Code for reading a file.  you probably don't want to modify anything
+  # here, unless you don't like the way we segment files.
   def readFile(self, fileName):
-    """
-     * Code for reading a file.  you probably don't want to modify anything here, 
-     * unless you don't like the way we segment files.
-    """
     contents = []
     f = open(fileName)
     for line in f:
@@ -71,16 +76,13 @@ class NaiveBayes:
     result = self.segmentWords('\n'.join(contents)) 
     return result
 
-  
+
+  # Splits lines on whitespace for file reading  
   def segmentWords(self, s):
-    """
-     * Splits lines on whitespace for file reading
-    """
     return s.split()
 
-  
+  # Takes in a trainDir, returns one TrainSplit with train set.  
   def trainSplit(self, trainDir):
-    """Takes in a trainDir, returns one TrainSplit with train set."""
     split = self.TrainSplit()
     posTrainFileNames = os.listdir('%s/pos/' % trainDir)
     negTrainFileNames = os.listdir('%s/neg/' % trainDir)
@@ -103,8 +105,8 @@ class NaiveBayes:
         words =  self.filterStopWords(words)
       self.addExample(example.klass, words)
 
+  # Returns a lsit of TrainSplits corresponding to the cross validation splits
   def crossValidationSplits(self, trainDir):
-    """Returns a lsit of TrainSplits corresponding to the cross validation splits."""
     splits = [] 
     posTrainFileNames = os.listdir('%s/pos/' % trainDir)
     negTrainFileNames = os.listdir('%s/neg/' % trainDir)
@@ -130,9 +132,8 @@ class NaiveBayes:
       splits.append(split)
     return splits
 
-
+  # Returns a list of labels for split.test.
   def test(self, split):
-    """Returns a list of labels for split.test."""
     labels = []
     for example in split.test:
       words = example.words
@@ -142,8 +143,8 @@ class NaiveBayes:
       labels.append(guess)
     return labels
   
+  # Builds the splits for training/testing
   def buildSplits(self, args):
-    """Builds the splits for training/testing"""
     trainData = [] 
     testData = []
     splits = []
@@ -204,8 +205,8 @@ class NaiveBayes:
       splits.append(split)
     return splits
   
+  # Filters stop words.
   def filterStopWords(self, words):
-    """Filters stop words."""
     filtered = []
     for word in words:
       if not word in self.stopList and word.strip() != '':
