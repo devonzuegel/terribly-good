@@ -14,9 +14,8 @@ class NaiveBayes:
 
   ##
   # Represents a document with a label. klass is 'pos' or 'neg' by
-  # convention.
+  # convention. 'words' is a list of strings.
   class Example:
-       words is a list of strings.
     def __init__(self):
       self.klass = ''
       self.words = []
@@ -29,44 +28,113 @@ class NaiveBayes:
     self.stopList = set(self.readFile('../data/english.stop'))
     self.numFolds = 10
 
+    # The set of all words found in the training set
+    self.vocab = set()
+
+    ##
+    # Counts the number of positive & negative docs from the training set,
+    # which divided by the total number of docs (self.nDocs) gives us the
+    # priors for finding positive and negative documents.
+    self.doc_counts = { 'pos': 0.0, 'neg': 0.0 }
+
+    ##
+    # Counts the number of times a given word occurs in positively- or
+    # negatively-classified review from the training set.
+    self.polarized_words = { 'pos': {}, 'neg': {} }
+
+    # Counts the number of positive and negative words in the corpus
+    self.word_counts = { 'pos': 0.0, 'neg': 0.0 }
+
+
 
   #############################################################################
   # TODO TODO TODO TODO TODO 
-  # Implement the Multinomial Naive Bayes classifier and the Naive Bayes Classifier with
-  # Boolean (Binarized) features.
-  # TODO: If the BOOLEAN_NB flag is true, your methods must implement Boolean (Binarized)
-  # Naive Bayes (that relies on feature presence/absence) instead of the usual algorithm
-  # that relies on feature counts
+    # Implement the Multinomial Naive Bayes classifier and the Naive Bayes Classifier with
+    # Boolean (Binarized) features.
+    # TODO: If the BOOLEAN_NB flag is true, your methods must implement Boolean (Binarized)
+    # Naive Bayes (that relies on feature presence/absence) instead of the usual algorithm
+    # that relies on feature counts
 
-  ## 
-  # TODO:
-  # 'words' is a list of words to classify. Return 'pos' or 'neg'
-  # classification.
+    ## 
+    # TODO:
+    # 'words' is a list of words to classify. Return 'pos' or 'neg'
+    # classification.
+    #
+    # Given a document, return which class returned the higher probability
   def classify(self, words):
-    
-    return 'pos'
+    vocab_size = len(self.vocab)
+    nDocs = self.doc_counts['pos'] + self.doc_counts['neg']
+
+    ##
+    # The baseline scores are the priors for each class (the percentage
+    # of training docs that fell under that class out of the total number
+    # of documents). These scores will be updated later, when we iterate
+    # through the words.
+    scores = { 
+      'pos': self.doc_counts['pos'] / nDocs,
+      'neg': self.doc_counts['neg'] / nDocs
+    }
+
+    for word in words:
+      for k in ['pos', 'neg']:
+
+        if (word in self.polarized_words[k]):
+          prob = (self.polarized_words[k][word] + 1.0)  /    \
+                 (self.word_counts[k] + vocab_size)
+
+          scores[k] += math.log(prob)
+
+        else:
+          scores[k] += 1.0 / (self.word_counts[k] + vocab_size)
+
+    if (scores['pos'] > scores['neg']):
+      return 'pos'
+    else:
+      return 'neg'
   
 
   ## 
   # TODO:
-  # Train your model on an example document with label klass ('pos' or
-  # 'neg') and words, a list of strings.
-  #
-  # You should store whatever data structures you use for your
-  # classifier  in the NaiveBayes class.
-  #
-  # Returns nothing
+    # Train your model on an example document with label klass ('pos' or
+    # 'neg') and words, a list of strings.
+    #
+    # You should store whatever data structures you use for your
+    # classifier  in the NaiveBayes class.
+    #
+    # Returns nothing
+    #
+    # Cycle through all the negative and positive files and create a list
+    # of which words we saw and their counts.
   def addExample(self, klass, words):
-    pass
-      
+
+    # Each call to addExample is another doc
+    # Increment doc_count for that klass (pos/neg)
+    self.doc_counts[klass] += 1.0
+
+    for word in words:
+      # Add this word to the vocabulary if it isn't already in it
+      if (word not in self.vocab):    self.vocab.add(word)
+
+      # Increment count for pos/neg word_counts according to klass
+      self.word_counts[klass] += 1.0
+
+      # If the word is not already in the list of polarized words, insert it
+      if (word not in self.polarized_words[klass]):
+        self.polarized_words[klass][word] = 0.0
+
+      ##
+      # Increment the count for the number of times that word is found in
+      # a certain class (pos/neg) of reviews
+      self.polarized_words[klass][word] += 1.0
+
 
   # END TODO (Modify code beyond here with caution)
   #############################################################################  
 
 
   ##
-  # Code for reading a file.  you probably don't want to modify anything
-  # here, unless you don't like the way we segment files.
+    # Code for reading a file.  you probably don't want to modify anything
+    # here, unless you don't like the way we segment files.
   def readFile(self, fileName):
     contents = []
     f = open(fileName)
@@ -105,7 +173,7 @@ class NaiveBayes:
         words =  self.filterStopWords(words)
       self.addExample(example.klass, words)
 
-  # Returns a lsit of TrainSplits corresponding to the cross validation splits
+  # Returns a list of TrainSplits corresponding to the cross validation splits
   def crossValidationSplits(self, trainDir):
     splits = [] 
     posTrainFileNames = os.listdir('%s/pos/' % trainDir)
@@ -226,6 +294,8 @@ def test10Fold(args, FILTER_STOP_WORDS):
       if FILTER_STOP_WORDS:
         words =  classifier.filterStopWords(words)
       classifier.addExample(example.klass, words)
+
+    # print_trained(classifier)
   
     for example in split.test:
       words = example.words
@@ -234,15 +304,21 @@ def test10Fold(args, FILTER_STOP_WORDS):
       guess = classifier.classify(words)
       if example.klass == guess:
         accuracy += 1.0
-
     accuracy = accuracy / len(split.test)
     avgAccuracy += accuracy
     print '[INFO]\tFold %d Accuracy: %f' % (fold, accuracy) 
     fold += 1
   avgAccuracy = avgAccuracy / fold
   print '[INFO]\tAccuracy: %f' % avgAccuracy
-    
-    
+
+
+# Sanity-checks the output of the training function
+def print_trained(classifier):
+  print 'len(classifier.vocab): ' + str(len(classifier.vocab))
+  print 'classifier.doc_counts: ' + str(classifier.doc_counts)
+  print 'classifier.polarized_words: ' + str(classifier.polarized_words)
+  print 'classifier.word_counts: ' + str(classifier.word_counts)
+
 def classifyFile(FILTER_STOP_WORDS, trainDir, testFilePath):
   classifier = NaiveBayes()
   classifier.FILTER_STOP_WORDS = FILTER_STOP_WORDS
