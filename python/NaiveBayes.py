@@ -68,8 +68,8 @@ class NaiveBayes:
         # Calculate the conditional probability that this word would
         # occur within the given class k and add it to the logprob score
         if (word in self.polarized_words[k]):
-          cond_prob = (self.polarized_words[k][word] + 1.0) /     \
-                      (self.word_counts[k] + vocab_size)
+          word_count = 1 if (self.BOOLEAN_NB) else self.polarized_words[k][word]
+          cond_prob = (word_count + 1.0) / (self.word_counts[k] + vocab_size)
           scores[k] += math.log(cond_prob)
         else:
           scores[k] += math.log(1.0 / (self.word_counts[k] + vocab_size))
@@ -77,7 +77,7 @@ class NaiveBayes:
     if (scores['pos'] > scores['neg']):   return 'pos'
     else:                                 return 'neg'
   
-  
+
   def addExample(self, klass, words):
 
 
