@@ -84,7 +84,7 @@ Data Format Summary
 Rating Decision (Appendix A)
 
 This section describes how we determined whether a review was positive
-or negative.
+or negative. 
 
 The original html files do not have consistent formats -- a review may
 not have the author's rating with it, and when it does, the rating can
