@@ -48,8 +48,10 @@ class NaiveBayes:
   #############################################################################
   
   def classify(self, words):
-
+    # Get total number of docs by adding up the number of pos and neg docs
     nDocs = self.doc_counts['pos'] + self.doc_counts['neg']
+
+    # Get size of vocabulary for later use
     vocab_size = len(self.vocab)
 
     ##
@@ -68,10 +70,21 @@ class NaiveBayes:
         # Calculate the conditional probability that this word would
         # occur within the given class k and add it to the logprob score
         if (word in self.polarized_words[k]):
+          ##
+          # With binarized Naive Bayes (self.BOOLEAN_NB == true), we count
+          # each word just once. If this flag is turned off, we want the
+          # the word to affect the score every time it shows up.
           word_count = 1 if (self.BOOLEAN_NB) else self.polarized_words[k][word]
+
+          ##
+          # Calculate conditional probability that this word indicates that
+          # particular class k, with Laplace smoothing.
           cond_prob = (word_count + 1.0) / (self.word_counts[k] + vocab_size)
+
+          # Add the logprob of the word to the logscore.
           scores[k] += math.log(cond_prob)
         else:
+          # Add the Laplace-smoothed logprob of 9 to the logscore.
           scores[k] += math.log(1.0 / (self.word_counts[k] + vocab_size))
 
     if (scores['pos'] > scores['neg']):   return 'pos'
@@ -79,8 +92,6 @@ class NaiveBayes:
   
 
   def addExample(self, klass, words):
-
-
     # Each call to addExample is another doc
     # Increment doc_count for that klass (pos/neg)
     self.doc_counts[klass] += 1.0
@@ -102,8 +113,8 @@ class NaiveBayes:
       self.polarized_words[klass][word] += 1.0
 
   ##
-    # Code for reading a file.  you probably don't want to modify anything
-    # here, unless you don't like the way we segment files.
+  # Code for reading a file.  you probably don't want to modify anything
+  # here, unless you don't like the way we segment files.
   def readFile(self, fileName):
     contents = []
     f = open(fileName)
