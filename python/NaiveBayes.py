@@ -20,8 +20,7 @@ class NaiveBayes:
       self.klass = ''
       self.words = []
 
-
- # NaiveBayes initialization
+  # NaiveBayes initialization
   def __init__(self):
     self.FILTER_STOP_WORDS = False
     self.BOOLEAN_NB = False
@@ -46,24 +45,12 @@ class NaiveBayes:
     self.word_counts = { 'pos': 0.0, 'neg': 0.0 }
 
 
-
   #############################################################################
-  # TODO TODO TODO TODO TODO 
-    # Implement the Multinomial Naive Bayes classifier and the Naive Bayes Classifier with
-    # Boolean (Binarized) features.
-    # TODO: If the BOOLEAN_NB flag is true, your methods must implement Boolean (Binarized)
-    # Naive Bayes (that relies on feature presence/absence) instead of the usual algorithm
-    # that relies on feature counts
-
-    ## 
-    # TODO:
-    # 'words' is a list of words to classify. Return 'pos' or 'neg'
-    # classification.
-    #
-    # Given a document, return which class returned the higher probability
+  
   def classify(self, words):
-    vocab_size = len(self.vocab)
+
     nDocs = self.doc_counts['pos'] + self.doc_counts['neg']
+    vocab_size = len(self.vocab)
 
     ##
     # The baseline scores are the priors for each class (the percentage
@@ -71,41 +58,28 @@ class NaiveBayes:
     # of documents). These scores will be updated later, when we iterate
     # through the words.
     scores = { 
-      'pos': self.doc_counts['pos'] / nDocs,
-      'neg': self.doc_counts['neg'] / nDocs
+      'pos': math.log(self.doc_counts['pos'] / nDocs),
+      'neg': math.log(self.doc_counts['neg'] / nDocs)
     }
 
     for word in words:
       for k in ['pos', 'neg']:
-
+        ##
+        # Calculate the conditional probability that this word would
+        # occur within the given class k and add it to the logprob score
         if (word in self.polarized_words[k]):
-          prob = (self.polarized_words[k][word] + 1.0)  /    \
-                 (self.word_counts[k] + vocab_size)
-
-          scores[k] += math.log(prob)
-
+          cond_prob = (self.polarized_words[k][word] + 1.0) /     \
+                      (self.word_counts[k] + vocab_size)
+          scores[k] += math.log(cond_prob)
         else:
-          scores[k] += 1.0 / (self.word_counts[k] + vocab_size)
+          scores[k] += math.log(1.0 / (self.word_counts[k] + vocab_size))
 
-    if (scores['pos'] > scores['neg']):
-      return 'pos'
-    else:
-      return 'neg'
+    if (scores['pos'] > scores['neg']):   return 'pos'
+    else:                                 return 'neg'
   
-
-  ## 
-  # TODO:
-    # Train your model on an example document with label klass ('pos' or
-    # 'neg') and words, a list of strings.
-    #
-    # You should store whatever data structures you use for your
-    # classifier  in the NaiveBayes class.
-    #
-    # Returns nothing
-    #
-    # Cycle through all the negative and positive files and create a list
-    # of which words we saw and their counts.
+  
   def addExample(self, klass, words):
+
 
     # Each call to addExample is another doc
     # Increment doc_count for that klass (pos/neg)
@@ -126,11 +100,6 @@ class NaiveBayes:
       # Increment the count for the number of times that word is found in
       # a certain class (pos/neg) of reviews
       self.polarized_words[klass][word] += 1.0
-
-
-  # END TODO (Modify code beyond here with caution)
-  #############################################################################  
-
 
   ##
     # Code for reading a file.  you probably don't want to modify anything
